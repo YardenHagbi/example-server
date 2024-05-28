@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: CICD / Build and Deploy to Azure
 
 env:
   AZURE_WEBAPP_NAME: example-server
@@ -8,10 +8,10 @@ env:
 on:
   push:
     branches:
-      - main
+      - '**'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,15 +22,27 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: npm install, build
-        run: |
-          npm install
-          npm run build
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: contains('refs/heads/dev,refs/heads/main', github.ref)
+    env:
+      SLOT: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Dev' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: 'Production'
+          slot-name: ${{ env.SLOT }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
