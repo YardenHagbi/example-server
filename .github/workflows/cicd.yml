@@ -14,9 +14,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
     env:
       SLOT: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
-      AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
 
     steps:
       - name: Checkout code
@@ -39,4 +39,4 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: ${{ env.SLOT }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-          publish-profile: ${{ env.AZURE_CREDENTIALS }}
+          publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
