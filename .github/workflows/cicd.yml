@@ -3,7 +3,7 @@ name: CICD / Build and Deploy to Azure
 env:
   AZURE_WEBAPP_NAME: example-server
   AZURE_WEBAPP_PACKAGE_PATH: .
-  NODE_VERSION: 20.x
+  NODE_VERSION: '20'
 
 on:
   push:
@@ -28,12 +28,16 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Echo branch name
+        run: echo branch name = ${GITHUB_REF}
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
     if: contains('refs/heads/dev,refs/heads/main', github.ref)
     env:
       SLOT: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Dev' }}
+      AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
 
     steps:
       - name: Checkout code
@@ -45,4 +49,4 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: ${{ env.SLOT }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ env.AZURE_CREDENTIALS }}
