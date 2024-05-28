@@ -28,25 +28,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Create .env file
+        run: |
+          touch .env
+          echo MESSAGE=${{ secrets.MESSAGE }} >> .env
+          echo ENVVAR=${{ secrets.ENVVAR }} >> .env
+
       - name: Install dependencies
         run: npm install
 
       - name: Build project
         run: npm run build
-
-      - name: Login to Azure CLI
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Update Azure Web App Environment Variables
-        run: |
-          az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} \
-                                           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-                                           --slot ${{ env.SLOT }} \
-                                           --slot-settings \
-                                            MESSAGE=${{ secrets.MESSAGE }} \
-                                            ENVVAR=${{ secrets.ENVVAR }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
