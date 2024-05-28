@@ -8,12 +8,12 @@ env:
 on:
   push:
     branches:
-      - '**'
+      - main
+      - dev
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    if: contains('refs/heads/dev,refs/heads/main', github.ref)
     env:
       SLOT: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
       AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
