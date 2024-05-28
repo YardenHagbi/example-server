@@ -3,7 +3,7 @@ name: CICD / Build and Deploy to Azure
 env:
   AZURE_WEBAPP_NAME: example-server
   AZURE_WEBAPP_PACKAGE_PATH: .
-  NODE_VERSION: '20'
+  NODE_VERSION: 20.x
 
 on:
   push:
@@ -27,9 +27,6 @@ jobs:
 
       - name: Build project
         run: npm run build
-
-      - name: Echo branch name
-        run: echo branch name = ${GITHUB_REF}
 
   deploy:
     needs: build
