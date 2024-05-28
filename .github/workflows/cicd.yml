@@ -11,8 +11,13 @@ on:
       - '**'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    if: contains('refs/heads/dev,refs/heads/main', github.ref)
+    env:
+      SLOT: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
+      AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,28 +32,6 @@ jobs:
 
       - name: Build project
         run: npm run build
-
-      - name: Save artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: .
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: contains('refs/heads/dev,refs/heads/main', github.ref)
-    env:
-      SLOT: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
-      AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: .
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
