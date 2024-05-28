@@ -3,7 +3,7 @@ name: CICD / Build and Deploy to Azure
 env:
   AZURE_WEBAPP_NAME: example-server
   AZURE_WEBAPP_PACKAGE_PATH: .
-  NODE_VERSION: 20.x
+  NODE_VERSION: '20'
 
 on:
   push:
@@ -11,31 +11,8 @@ on:
       - '**'
 
 jobs:
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: ${{ env.NODE_VERSION }}
-
-  #     - name: Install dependencies
-  #       run: npm install
-
-  #     - name: Build project
-  #       run: npm run build
-
-  deploy:
-    # needs: build
+  build:
     runs-on: ubuntu-latest
-    if: contains('refs/heads/dev,refs/heads/main', github.ref)
-    env:
-      SLOT: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Dev' }}
-      AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,6 +27,24 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Save artifacts
+        uses: actions/upload-artifact@v4
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: contains('refs/heads/dev,refs/heads/main', github.ref)
+    env:
+      SLOT: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
+      AZURE_CREDENTIALS: ${{ github.ref == 'refs/heads/main' && secrets.AZURE_CREDENTIALS_PROD || secrets.AZURE_CREDENTIALS_DEV }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
