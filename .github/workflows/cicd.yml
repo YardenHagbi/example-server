@@ -2,7 +2,7 @@ name: Build and Deploy
 
 env:
   AZURE_WEBAPP_NAME: example-server
-  AZURE_WEBAPP_PACKAGE_PATH: dist
+  AZURE_WEBAPP_PACKAGE_PATH: .
   NODE_VERSION: 20.x
 
 on:
